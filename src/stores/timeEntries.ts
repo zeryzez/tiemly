@@ -2,28 +2,31 @@ import { defineStore } from "pinia";
 
 export const useTimeEntriesStore = defineStore("timeEntries", {
   state: () => ({
-    entries: [],
+    entries: [] as any[],
     loading: false,
   }),
 
   getters: {
+    // Entrée en cours (sans date de fin)
     runningEntry: (state) => state.entries.find((e) => e.end === null),
   },
 
   actions: {
-    async fetchEntries() {
+    // Charger les entrées avec filtre optionnel from/to (YYYY-MM-DD)
+    async fetchEntries(from: string | null = null, to: string | null = null) {
       this.loading = true;
       try {
-        const { data } = await this.$api.get("/api/time-entries");
-        console.log("Entries reçues", data);
+        const params: Record<string, string> = {};
+        if (from) params.from = from;
+        if (to) params.to = to;
 
-        // ASTUCE : Si on a déjà une activité qui tourne (runningEntry) en mémoire,
-        // et qu'elle n'est pas dans les données reçues (data), on la réinjecte manuellement.
+        const { data } = await this.$api.get("/api/time-entries", { params });
+
+        // Si une entrée tourne en mémoire et n'est pas dans le retour API,
+        // on la réinjecte pour ne pas perdre son affichage.
         const currentRunning = this.runningEntry;
-
         this.entries = data;
 
-        // Si on avait une activité en cours et qu'elle a disparu après le fetch, on la remet
         if (
           currentRunning &&
           !this.entries.find((e) => e.id === currentRunning.id)
@@ -37,7 +40,8 @@ export const useTimeEntriesStore = defineStore("timeEntries", {
       }
     },
 
-    async startTimer(projectId, activityId) {
+    // Démarrer un timer
+    async startTimer(projectId: string, activityId: string) {
       const { data } = await this.$api.post("/api/time-entries", {
         project_id: projectId,
         activity_id: activityId,
@@ -45,20 +49,61 @@ export const useTimeEntriesStore = defineStore("timeEntries", {
       this.entries.unshift(data);
     },
 
-    async stopTimer(entryId) {
+    // Stopper le timer d'une entrée
+    async stopTimer(entryId: string) {
       const { data } = await this.$api.patch(
         `/api/time-entries/${entryId}/stop`,
       );
-
       const index = this.entries.findIndex((e) => e.id === entryId);
       if (index !== -1) {
         this.entries[index] = data;
       }
     },
 
-    async deleteEntry(entryId) {
+    // Supprimer une entrée
+    async deleteEntry(entryId: string) {
       await this.$api.delete(`/api/time-entries/${entryId}`);
       this.entries = this.entries.filter((e) => e.id !== entryId);
+    },
+
+    // Modifier une entrée existante
+    async updateEntry(entry: {
+      id: string;
+      project_id: string;
+      activity_id: string;
+      start: string;
+      end: string | null;
+      comment?: string;
+    }) {
+      const { data } = await this.$api.put(`/api/time-entries/${entry.id}`, {
+        project_id: entry.project_id,
+        activity_id: entry.activity_id,
+        start: entry.start,
+        end: entry.end,
+        comment: entry.comment || "",
+      });
+      const index = this.entries.findIndex((e) => e.id === entry.id);
+      if (index !== -1) {
+        this.entries[index] = data;
+      }
+    },
+
+    // Créer une entrée manuelle (start ET end obligatoires)
+    async createManualEntry(
+      projectId: string,
+      activityId: string,
+      start: string,
+      end: string,
+      comment: string = "",
+    ) {
+      const { data } = await this.$api.post("/api/time-entries", {
+        project_id: projectId,
+        activity_id: activityId,
+        start,
+        end,
+        comment,
+      });
+      this.entries.unshift(data);
     },
   },
   persist: {

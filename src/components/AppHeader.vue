@@ -6,6 +6,7 @@ import { useGoalsStore } from "@/stores/goals";
 import { useProjectsStore } from "@/stores/projects";
 import { useActivitiesStore } from "@/stores/activities";
 import { useRouter } from "vue-router";
+import { dateMixin } from "@/mixins/dateMixin";
 
 const auth = useAuthStore();
 const timeStore = useTimeEntriesStore();
@@ -17,29 +18,9 @@ const router = useRouter();
 const now = ref(Date.now());
 let timer = null;
 
-const getTodayDate = () => {
-  const d = new Date();
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return `${yyyy}-${mm}-${dd}`;
-};
-
-const toLocalDateKey = (dateLike) => {
-  const d = new Date(dateLike);
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return `${yyyy}-${mm}-${dd}`;
-};
-
-const formatDuration = (ms) => {
-  const totalSec = Math.max(0, Math.floor(ms / 1000));
-  const h = Math.floor(totalSec / 3600);
-  const m = Math.floor((totalSec % 3600) / 60);
-  const s = totalSec % 60;
-  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-};
+// Helpers date via mixin (utilisés directement comme fonctions)
+const { mixinGetTodayDate, mixinToLocalDateKey, mixinFormatDurationHMS } =
+  dateMixin.methods;
 
 const formatHours = (ms) => {
   const hours = ms / 3600000;
@@ -73,25 +54,30 @@ const runningActivityName = computed(() => {
 const runningDuration = computed(() => {
   const entry = timeStore.runningEntry;
   if (!entry) return "00:00:00";
-  return formatDuration(now.value - new Date(entry.start).getTime());
+  return mixinFormatDurationHMS(now.value - new Date(entry.start).getTime());
 });
 
 const totalWorkedTodayMs = computed(() => {
-  const today = getTodayDate();
-
+  const today = mixinGetTodayDate();
   return timeStore.entries.reduce((sum, entry) => {
     if (!entry?.start) return sum;
-    if (toLocalDateKey(entry.start) !== today) return sum;
-
+    if (mixinToLocalDateKey(entry.start) !== today) return sum;
     const start = new Date(entry.start).getTime();
     const end = entry.end ? new Date(entry.end).getTime() : now.value;
     return sum + Math.max(0, end - start);
   }, 0);
 });
 
-const progress = computed(() => {
-  if (goalsStore.dailyGoal <= 0) return 0;
-  return Math.min((timeStore.entries.length / goalsStore.dailyGoal) * 100, 100);
+// Dénominateur : dailyGoal (préférence utilisateur) si défini, sinon total API
+const goalsTarget = computed(() =>
+  goalsStore.dailyGoal > 0
+    ? goalsStore.dailyGoal
+    : goalsStore.todayTotalCount,
+);
+
+const goalsProgress = computed(() => {
+  if (goalsTarget.value === 0) return 0;
+  return Math.min((goalsStore.todayCompletedCount / goalsTarget.value) * 100, 100);
 });
 
 const stopRunning = async () => {
@@ -108,11 +94,12 @@ const logout = () => {
 
 onMounted(async () => {
   if (auth.isConnected) {
-    const today = getTodayDate();
+    const today = mixinGetTodayDate();
     await Promise.all([
       timeStore.fetchEntries(today, today),
       projectsStore.fetchProjects(),
       activitiesStore.fetchActivities(),
+      goalsStore.fetchGoals(today),
     ]);
   }
 
@@ -136,9 +123,10 @@ onBeforeUnmount(() => {
 
     <div class="status-block">
       <div v-if="timeStore.runningEntry" class="running-card">
+        <span class="pulse-dot"></span>
         <strong>En cours :</strong>
         <span>{{ runningProjectName }} · {{ runningActivityName }}</span>
-        <span>Durée : {{ runningDuration }}</span>
+        <span class="duration-badge">{{ runningDuration }}</span>
         <button class="stop-btn" @click="stopRunning">Stop</button>
       </div>
       <div v-else class="running-card muted">
@@ -146,17 +134,21 @@ onBeforeUnmount(() => {
       </div>
 
       <div class="hours-line">
-        <strong>Aujourd’hui :</strong> {{ formatHours(totalWorkedTodayMs) }}
+        <strong>Aujourd'hui :</strong> {{ formatHours(totalWorkedTodayMs) }}
       </div>
     </div>
 
     <div class="goals-display">
-      <span
-        >Objectifs du jour : {{ timeStore.entries.length }} /
-        {{ goalsStore.dailyGoal }}</span
-      >
+      <span>
+        Objectifs du jour :
+        <strong>{{ goalsStore.todayCompletedCount }}</strong>
+        / {{ goalsTarget }}
+      </span>
       <div class="progress-bar">
-        <div class="progress-fill" :style="{ width: progress + '%' }"></div>
+        <div
+          class="progress-fill"
+          :style="{ width: goalsProgress + '%' }"
+        ></div>
       </div>
     </div>
 
@@ -173,12 +165,16 @@ onBeforeUnmount(() => {
   padding: 1rem;
   background: #2c3e50;
   color: white;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 .nav-links a {
   color: #aaa;
   text-decoration: none;
   margin-right: 15px;
   font-weight: bold;
+  transition: color 0.2s;
 }
 .nav-links a.router-link-active {
   color: #42b983;
@@ -200,6 +196,35 @@ onBeforeUnmount(() => {
 .running-card.muted {
   opacity: 0.8;
 }
+/* Indicateur visuel animé pour signifier une activité en cours */
+.pulse-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #42b983;
+  animation: pulse-anim 1.5s ease-in-out infinite;
+  flex-shrink: 0;
+}
+@keyframes pulse-anim {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(0.7);
+  }
+}
+.duration-badge {
+  background: rgba(66, 185, 131, 0.2);
+  border: 1px solid #42b983;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-family: monospace;
+  font-size: 0.9rem;
+  color: #42b983;
+}
 .stop-btn {
   margin-left: auto;
   background: #f44336;
@@ -208,6 +233,10 @@ onBeforeUnmount(() => {
   padding: 4px 10px;
   border-radius: 4px;
   cursor: pointer;
+  transition: background 0.2s;
+}
+.stop-btn:hover {
+  background: #d32f2f;
 }
 .hours-line {
   font-size: 0.9rem;
@@ -237,6 +266,9 @@ onBeforeUnmount(() => {
   padding: 5px 10px;
   cursor: pointer;
   border-radius: 4px;
+  transition:
+    color 0.2s,
+    border-color 0.2s;
 }
 .logout-btn:hover {
   color: white;

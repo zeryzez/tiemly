@@ -97,7 +97,7 @@ const isActive = (a) => a.is_enabled;
       />
     </div>
 
-    <ul class="list">
+    <transition-group name="list" tag="ul" class="list">
       <li
         v-for="activity in filteredActivities"
         :key="activity.id"
@@ -137,7 +137,7 @@ const isActive = (a) => a.is_enabled;
           </div>
         </div>
       </li>
-    </ul>
+    </transition-group>
   </div>
 </template>
 
@@ -265,5 +265,22 @@ const isActive = (a) => a.is_enabled;
 .row-disabled {
   opacity: 0.6;
   background: #fcfcfc;
+}
+
+/* Transitions pour l'apparition/disparition des éléments de la liste */
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.35s ease;
+}
+.list-enter-from {
+  opacity: 0;
+  transform: translateX(-16px);
+}
+.list-leave-to {
+  opacity: 0;
+  transform: translateX(16px);
+}
+.list-move {
+  transition: transform 0.35s ease;
 }
 </style>

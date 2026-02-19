@@ -18,25 +18,25 @@ export const useStatsStore = defineStore("stats", {
     projectCount: (state) =>
       new Set(state.filteredEntries.map((e) => e.project_id)).size,
 
-    // Données pour le graphe Projet
+    // Données pour le graphe Projet — keyed by project_id
     statsByProject: (state) => {
       const map = {};
       state.filteredEntries.forEach((e) => {
         if (!e.end) return;
-        const name = e.project?.name || "Inconnu";
-        map[name] = (map[name] || 0) + (new Date(e.end) - new Date(e.start));
+        const key = e.project_id || "inconnu";
+        map[key] = (map[key] || 0) + (new Date(e.end) - new Date(e.start));
       });
       return map;
     },
-    // Données pour le graphe Activité
+    // Données pour le graphe Activité — keyed by activity_id
     statsByActivity: (state) => {
       const map = {};
       state.filteredEntries.forEach((e) => {
         if (!e.end) return;
-        const name = e.activity?.name || "Inconnu";
+        const key = e.activity_id || "inconnu";
         const color = e.activity?.color || "#cccccc";
-        if (!map[name]) map[name] = { total: 0, color };
-        map[name].total += new Date(e.end) - new Date(e.start);
+        if (!map[key]) map[key] = { total: 0, color };
+        map[key].total += new Date(e.end) - new Date(e.start);
       });
       return map;
     },
@@ -49,6 +49,7 @@ export const useStatsStore = defineStore("stats", {
         if (projectId) params.project_id = projectId; // On ajoute le filtre si présent
 
         const { data } = await this.$api.get("/api/time-entries", { params });
+        console.log("Stats API response", data);
 
         // Tri chronologique (du plus ancien au plus récent pour le rapport)
         this.filteredEntries = data.sort(

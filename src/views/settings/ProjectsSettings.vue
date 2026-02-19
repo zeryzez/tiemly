@@ -103,7 +103,7 @@ const isActive = (p) => p.is_enabled; // À adapter selon API
           <th style="width: 180px">Actions</th>
         </tr>
       </thead>
-      <tbody>
+      <transition-group name="list" tag="tbody">
         <tr
           v-for="project in filteredProjects"
           :key="project.id"
@@ -158,7 +158,7 @@ const isActive = (p) => p.is_enabled; // À adapter selon API
             </div>
           </td>
         </tr>
-      </tbody>
+      </transition-group>
     </table>
   </div>
 </template>
@@ -284,5 +284,22 @@ button {
 .row-disabled {
   opacity: 0.6;
   background: #fdfdfd;
+}
+
+/* Transitions pour l'apparition/disparition des lignes du tableau */
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.35s ease;
+}
+.list-enter-from {
+  opacity: 0;
+  transform: translateX(-16px);
+}
+.list-leave-to {
+  opacity: 0;
+  transform: translateX(16px);
+}
+.list-move {
+  transition: transform 0.35s ease;
 }
 </style>
