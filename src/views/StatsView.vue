@@ -21,7 +21,6 @@ const projectsStore = useProjectsStore();
 const activitiesStore = useActivitiesStore();
 const { mixinFormatDurationH } = dateMixin.methods;
 
-// Filtres date — pré-remplis sur le mois en cours
 const dateFrom = ref(
   new Date(new Date().getFullYear(), new Date().getMonth(), 1)
     .toISOString()
@@ -29,7 +28,6 @@ const dateFrom = ref(
 );
 const dateTo = ref(new Date().toISOString().split("T")[0]);
 
-// Filtre projet optionnel
 const selectedProjectId = ref("");
 
 onMounted(() => {
@@ -38,7 +36,6 @@ onMounted(() => {
   refresh();
 });
 
-// --- Résolution des noms à partir des IDs ---
 const getProjectName = (id) =>
   projectsStore.projects.find((p) => p.id === id)?.name || id || "-";
 
@@ -55,7 +52,6 @@ const refresh = () =>
     selectedProjectId.value || null,
   );
 
-// --- Formatage ---
 const formatTime = (ms) => mixinFormatDurationH(ms);
 
 const totalMs = computed(() =>
@@ -65,7 +61,6 @@ const totalMs = computed(() =>
   ),
 );
 
-// --- Graphes ---
 const projectChartData = computed(() => ({
   labels: Object.keys(statsStore.statsByProject).map((id) =>
     getProjectName(id),
@@ -101,7 +96,6 @@ const activityChartData = computed(() => ({
   ],
 }));
 
-// Options graphes pour afficher durée en tooltip
 const chartOptions = {
   plugins: {
     tooltip: {
@@ -120,7 +114,6 @@ const chartOptions = {
   },
 };
 
-// Nombre de jours dans la période (pour la moyenne journalière)
 const dayCount = computed(() => {
   const from = new Date(dateFrom.value);
   const to = new Date(dateTo.value);
@@ -133,7 +126,7 @@ const dayCount = computed(() => {
   <div class="stats-view">
     <h1>Statistiques</h1>
 
-    <!-- Filtres -->
+    
     <div class="filters card">
       <label>
         Du
@@ -154,7 +147,7 @@ const dayCount = computed(() => {
       </label>
     </div>
 
-    <!-- KPIs -->
+    
     <div class="kpi-container">
       <div class="kpi-card">
         <span class="label">Temps total</span>
@@ -174,33 +167,25 @@ const dayCount = computed(() => {
       </div>
     </div>
 
-    <!-- Graphes -->
+    
     <div class="charts-grid">
       <div v-if="!selectedProjectId" class="chart-box card">
         <h3>Répartition par Projet</h3>
         <div class="chart-wrapper">
-          <Pie
-            v-if="Object.keys(statsStore.statsByProject).length"
-            :data="projectChartData"
-            :options="chartOptions"
-          />
+          <Pie v-if="Object.keys(statsStore.statsByProject).length" :data="projectChartData" :options="chartOptions"/>
           <p v-else class="empty">Aucune donnée.</p>
         </div>
       </div>
       <div class="chart-box card">
         <h3>Répartition par Activité</h3>
         <div class="chart-wrapper">
-          <Pie
-            v-if="Object.keys(statsStore.statsByActivity).length"
-            :data="activityChartData"
-            :options="chartOptions"
-          />
+          <Pie v-if="Object.keys(statsStore.statsByActivity).length" :data="activityChartData" :options="chartOptions"/>
           <p v-else class="empty">Aucune donnée.</p>
         </div>
       </div>
     </div>
 
-    <!-- Détail des entrées -->
+    
     <div class="details-section card">
       <h3>Détail des entrées — ordre chronologique</h3>
       <div v-if="statsStore.loading" class="loading">Chargement...</div>
@@ -271,13 +256,6 @@ const dayCount = computed(() => {
   max-width: 1100px;
   margin: 0 auto;
 }
-.card {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-  margin-bottom: 2rem;
-}
 .filters {
   display: flex;
   gap: 16px;
@@ -290,19 +268,16 @@ const dayCount = computed(() => {
   gap: 4px;
   font-size: 0.85rem;
   font-weight: 600;
-  color: #555;
+  color: var(--text-muted);
 }
 .filters input,
 .filters select {
-  padding: 7px 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
   min-width: 140px;
 }
 .filters span {
   padding-bottom: 6px;
   font-size: 0.9rem;
-  color: #777;
+  color: var(--text-muted);
 }
 
 .kpi-container {
@@ -312,22 +287,23 @@ const dayCount = computed(() => {
   margin-bottom: 2rem;
 }
 .kpi-card {
-  background: #2c3e50;
+  background: var(--secondary);
   color: white;
   padding: 20px;
-  border-radius: 8px;
+  border-radius: var(--radius);
   text-align: center;
+  box-shadow: var(--shadow);
 }
 .kpi-card .label {
   display: block;
   font-size: 0.85rem;
-  opacity: 0.75;
+  opacity: 0.8;
   margin-bottom: 6px;
 }
 .kpi-card .value {
   font-size: 1.8rem;
   font-weight: bold;
-  color: #42b983;
+  color: var(--primary);
 }
 
 .charts-grid {
@@ -339,7 +315,7 @@ const dayCount = computed(() => {
 .chart-box h3 {
   text-align: center;
   margin-bottom: 16px;
-  color: #2c3e50;
+  color: var(--secondary);
 }
 .chart-wrapper {
   max-width: 350px;
@@ -352,46 +328,53 @@ const dayCount = computed(() => {
 }
 .chrono-table th,
 .chrono-table td {
-  padding: 10px 12px;
+  padding: 12px;
   text-align: left;
-  border-bottom: 1px solid #eee;
-  font-size: 0.9rem;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.95rem;
 }
 .chrono-table th {
-  background: #f5f5f5;
+  background: #f8f9fa;
   font-weight: 600;
-  color: #444;
+  color: var(--secondary);
 }
 .bold {
   font-weight: 600;
-  color: #2c3e50;
+  color: var(--secondary);
 }
 .color-dot {
   display: inline-block;
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
-  margin-right: 5px;
+  margin-right: 8px;
   vertical-align: middle;
 }
 .empty {
   text-align: center;
-  color: #aaa;
+  color: var(--text-muted);
   padding: 20px;
 }
 .loading {
   text-align: center;
   padding: 20px;
-  color: #888;
+  color: var(--text-muted);
 }
 
-/* Transition tableau */
-.list-enter-active,
-.list-leave-active {
-  transition: opacity 0.3s ease;
+.kpi-card {
+  animation: kpiPop 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+  animation-fill-mode: backwards;
 }
-.list-enter-from,
-.list-leave-to {
-  opacity: 0;
+
+.kpi-card:nth-child(1) { animation-delay: 0.1s; }
+.kpi-card:nth-child(2) { animation-delay: 0.2s; }
+.kpi-card:nth-child(3) { animation-delay: 0.3s; }
+.kpi-card:nth-child(4) { animation-delay: 0.4s; }
+
+@keyframes kpiPop {
+  0% { opacity: 0; transform: scale(0.8) translateY(20px); }
+  60% { transform: scale(1.05) translateY(-5px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
 }
 </style>
+

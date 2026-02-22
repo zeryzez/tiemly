@@ -110,10 +110,11 @@ const saveProfile = async () => {
 
 <style scoped>
 .card {
-  background: #f9f9f9;
+  background: var(--card-bg);
   padding: 20px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow);
 }
 .form-group {
   display: flex;
@@ -124,25 +125,34 @@ const saveProfile = async () => {
 input {
   padding: 8px;
   max-width: 260px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
 }
 button {
-  padding: 8px 12px;
+  padding: 8px 16px;
   border: none;
   border-radius: 6px;
-  background: #42b983;
+  background: var(--primary);
   color: white;
   cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+button:hover:not(:disabled) {
+  background: var(--primary-hover);
 }
 button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 .success {
-  color: #2e7d32;
+  color: var(--primary);
   margin-top: 10px;
+  font-weight: 600;
 }
 .error {
-  color: #c62828;
+  color: var(--danger);
   margin-top: 10px;
+  font-weight: 600;
 }
 </style>

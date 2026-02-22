@@ -38,8 +38,8 @@ const loginWithKey = () => {
 </script>
 
 <template>
-  <div class="login-container">
-    <h1>Bienvenue sur Timely</h1>
+  <div class="container login-container">
+    <h1 class="text-center">Bienvenue sur Timely</h1>
 
     <div class="card">
       <h2>Je n'ai pas de compte</h2>
@@ -51,10 +51,10 @@ const loginWithKey = () => {
         <label>Email :</label>
         <input v-model="email" type="email" placeholder="john@example.com" />
       </div>
-      <button @click="register">Créer mon compte</button>
+      <button class="btn btn-primary" style="width: 100%" @click="register">Créer mon compte</button>
     </div>
 
-    <hr />
+    <hr style="margin: 2rem 0; border: 0; border-top: 1px solid var(--border-color);" />
 
     <div class="card">
       <h2>J'ai déjà une clé API</h2>
@@ -66,47 +66,21 @@ const loginWithKey = () => {
           placeholder="Collez votre clé ici"
         />
       </div>
-      <button @click="loginWithKey" class="secondary">Entrer</button>
+      <button class="btn btn-secondary" style="width: 100%" @click="loginWithKey">Entrer</button>
     </div>
 
-    <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
+    <p v-if="errorMessage" class="error text-center">{{ errorMessage }}</p>
   </div>
 </template>
 
 <style scoped>
 .login-container {
-  max-width: 400px;
-  margin: 2rem auto;
-  padding: 1rem;
-  text-align: center;
-}
-.card {
-  border: 1px solid #ddd;
-  padding: 1.5rem;
-  border-radius: 8px;
-  margin-bottom: 1rem;
-}
-.form-group {
-  margin-bottom: 1rem;
-  text-align: left;
-}
-input {
-  width: 100%;
-  padding: 0.5rem;
-  margin-top: 0.5rem;
-}
-button {
-  width: 100%;
-  padding: 0.7rem;
-  background-color: #42b983;
-  color: white;
-  border: none;
-  cursor: pointer;
-}
-button.secondary {
-  background-color: #2c3e50;
+  max-width: 450px;
+  margin-top: 4rem;
 }
 .error {
-  color: red;
+  color: var(--danger);
+  font-weight: 600;
+  margin-top: 1rem;
 }
 </style>

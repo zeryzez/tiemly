@@ -8,6 +8,7 @@ import piniaPersist from "pinia-plugin-persist";
 import { useAuthStore } from "./stores/auth";
 import Vue3Toastify from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
+import "./style.css";
 import { vMarkdown } from "./directives/vMarkdown";
 import { vFocus } from "./directives/vFocus";
 
@@ -31,7 +32,6 @@ if (auth.apiKey) {
 }
 app.use(router);
 
-// Directives globales
 app.directive("markdown", vMarkdown);
 app.directive("focus", vFocus);
 

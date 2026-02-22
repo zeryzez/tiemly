@@ -4,13 +4,11 @@ import { useActivitiesStore } from "@/stores/activities";
 
 const activitiesStore = useActivitiesStore();
 
-// Variables
 const newName = ref("");
-const newColor = ref("#000000"); // Couleur par défaut création
+const newColor = ref("#000000"); 
 const searchQuery = ref("");
 const editingId = ref(null);
 
-// Données d'édition
 const editForm = ref({
   name: "",
   color: "",
@@ -28,17 +26,14 @@ const filteredActivities = computed(() => {
   );
 });
 
-// --- CRÉATION ---
 const handleCreate = async () => {
   if (newName.value) {
-    // Note: createActivity attend (name, color)
     await activitiesStore.createActivity(newName.value, newColor.value);
     newName.value = "";
     newColor.value = "#000000";
   }
 };
 
-// --- ÉDITION ---
 const startEdit = (activity) => {
   editingId.value = activity.id;
   editForm.value = {
@@ -61,9 +56,7 @@ const cancelEdit = () => {
   editingId.value = null;
 };
 
-// --- ACTIVE / DISABLE ---
 const toggleStatus = async (activity) => {
-  // Adaptez le champ 'active' selon votre API
   if (activity.is_enabled) {
     await activitiesStore.disableActivity(activity.id);
   } else {
@@ -93,7 +86,7 @@ const isActive = (a) => a.is_enabled;
     <div class="search-bar">
       <input
         v-model="searchQuery"
-        placeholder="🔍 Rechercher une activité..."
+        placeholder="Rechercher une activité..."
       />
     </div>
 
@@ -109,9 +102,9 @@ const isActive = (a) => a.is_enabled;
 
           <div class="actions">
             <button class="btn-save icon-btn" @click="saveEdit(activity)">
-              💾
+              Sauvegarder
             </button>
-            <button class="btn-cancel icon-btn" @click="cancelEdit">❌</button>
+            <button class="btn-cancel icon-btn" @click="cancelEdit">Annuler</button>
           </div>
         </div>
 
@@ -143,10 +136,12 @@ const isActive = (a) => a.is_enabled;
 
 <style scoped>
 .box {
-  background: #f9f9f9;
-  padding: 15px;
-  border-radius: 8px;
-  margin-bottom: 15px;
+  background: var(--card-bg);
+  padding: 1.5rem;
+  border-radius: var(--radius);
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow);
 }
 .input-group {
   display: flex;
@@ -155,36 +150,33 @@ const isActive = (a) => a.is_enabled;
 }
 .input-group input[type="text"] {
   flex: 1;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
 }
 .color-picker {
-  height: 35px;
+  height: 40px;
   width: 50px;
-  border: none;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
   cursor: pointer;
-  background: none;
+  padding: 2px;
+  background: white;
 }
 
 .search-bar input {
-  width: 100%;
-  padding: 8px;
-  margin-bottom: 15px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  margin-bottom: 1.5rem;
 }
 
 .list {
   list-style: none;
   padding: 0;
-  border: 1px solid #eee;
-  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  background: var(--card-bg);
+  box-shadow: var(--shadow);
+  overflow: hidden;
 }
 .list li {
-  padding: 10px;
-  border-bottom: 1px solid #eee;
-  background: white;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color);
 }
 .list li:last-child {
   border-bottom: none;
@@ -193,16 +185,16 @@ const isActive = (a) => a.is_enabled;
 .row-content {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 .name {
   flex-grow: 1;
-  font-weight: bold;
-  color: #333;
+  font-weight: 600;
+  color: var(--secondary);
 }
 .color-dot {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   display: inline-block;
   border: 1px solid rgba(0, 0, 0, 0.1);
@@ -210,77 +202,55 @@ const isActive = (a) => a.is_enabled;
 
 .edit-input {
   flex-grow: 1;
-  padding: 5px;
 }
 
 .actions {
   display: flex;
-  gap: 5px;
+  gap: 8px;
 }
 .btn-small {
-  padding: 5px 10px;
-  border-radius: 4px;
-  border: 1px solid #ddd;
-  cursor: pointer;
-}
-.icon-btn {
-  padding: 5px 10px;
+  padding: 6px 12px;
+  border-radius: 6px;
   border: none;
   cursor: pointer;
-  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: background 0.2s;
+}
+.icon-btn {
+  padding: 6px 10px;
+  border: none;
+  cursor: pointer;
+  border-radius: 6px;
+  font-size: 1rem;
 }
 
 .btn-primary {
-  background: #42b983;
+  background: var(--primary);
   color: white;
   border: none;
-  padding: 8px 15px;
-  border-radius: 4px;
+  padding: 8px 16px;
+  border-radius: 6px;
   cursor: pointer;
+  font-weight: 600;
 }
-.btn-edit {
-  background: #2196f3;
-  color: white;
-  border: none;
-}
-.btn-disable {
-  background: #ef5350;
-  color: white;
-  border: none;
-}
-.btn-enable {
-  background: #66bb6a;
-  color: white;
-  border: none;
-}
-.btn-save {
-  background: #4caf50;
-  color: white;
-}
-.btn-cancel {
-  background: #9e9e9e;
-  color: white;
-}
+.btn-primary:hover { background: var(--primary-hover); }
+.btn-edit { background: #2196f3; color: white; }
+.btn-disable { background: var(--danger); color: white; }
+.btn-enable { background: #66bb6a; color: white; }
+.btn-save { background: #4caf50; color: white; }
+.btn-cancel { background: #9e9e9e; color: white; }
 
 .row-disabled {
   opacity: 0.6;
-  background: #fcfcfc;
+  background: #fafafa;
 }
 
-/* Transitions pour l'apparition/disparition des éléments de la liste */
-.list-enter-active,
-.list-leave-active {
-  transition: all 0.35s ease;
+.list li {
+  transition: all 0.2s ease;
 }
-.list-enter-from {
-  opacity: 0;
-  transform: translateX(-16px);
-}
-.list-leave-to {
-  opacity: 0;
-  transform: translateX(16px);
-}
-.list-move {
-  transition: transform 0.35s ease;
+.list li:hover:not(.row-disabled) {
+  transform: translateX(4px);
+  background: rgba(66, 185, 131, 0.05);
 }
 </style>

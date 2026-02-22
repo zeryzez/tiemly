@@ -4,13 +4,11 @@ import { useProjectsStore } from "@/stores/projects";
 
 const projectsStore = useProjectsStore();
 
-// Variables
 const newProjectName = ref("");
-const newProjectDesc = ref(""); // Pour la création
+const newProjectDesc = ref(""); 
 const searchQuery = ref("");
 const editingId = ref(null);
 
-// On utilise un objet pour stocker les données en cours d'édition
 const editForm = ref({
   name: "",
   description: "",
@@ -20,7 +18,6 @@ onMounted(() => {
   projectsStore.fetchProjects();
 });
 
-// --- RECHERCHE ---
 const filteredProjects = computed(() => {
   if (!searchQuery.value) return projectsStore.projects;
   const lowerSearch = searchQuery.value.toLowerCase();
@@ -29,7 +26,6 @@ const filteredProjects = computed(() => {
   );
 });
 
-// --- AJOUTER ---
 const handleCreate = async () => {
   if (newProjectName.value) {
     await projectsStore.createProject(
@@ -41,13 +37,11 @@ const handleCreate = async () => {
   }
 };
 
-// --- MODIFIER ---
 const startEdit = (project) => {
   editingId.value = project.id;
-  // On remplit le formulaire avec les valeurs actuelles
   editForm.value = {
     name: project.name,
-    description: project.description || "", // Gestion du null
+    description: project.description || "", 
   };
 };
 
@@ -65,9 +59,7 @@ const cancelEdit = () => {
   editingId.value = null;
 };
 
-// --- DÉSACTIVER / RÉACTIVER ---
 const toggleStatus = async (project) => {
-  // Adaptez 'isActive' selon le vrai champ API (active, enable, etc.)
   if (project.is_enabled) {
     await projectsStore.disableProject(project.id);
   } else {
@@ -75,7 +67,7 @@ const toggleStatus = async (project) => {
   }
 };
 
-const isActive = (p) => p.is_enabled; // À adapter selon API
+const isActive = (p) => p.is_enabled; 
 </script>
 
 <template>
@@ -92,7 +84,7 @@ const isActive = (p) => p.is_enabled; // À adapter selon API
     </div>
 
     <div class="search-bar">
-      <input v-model="searchQuery" placeholder="🔍 Rechercher un projet..." />
+      <input v-model="searchQuery" placeholder="Rechercher un projet..." />
     </div>
 
     <table class="data-table">
@@ -165,10 +157,12 @@ const isActive = (p) => p.is_enabled; // À adapter selon API
 
 <style scoped>
 .box {
-  background: #f9f9f9;
-  padding: 15px;
-  border-radius: 8px;
-  margin-bottom: 15px;
+  background: var(--card-bg);
+  padding: 1.5rem;
+  border-radius: var(--radius);
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow);
 }
 .input-group {
   display: flex;
@@ -177,129 +171,104 @@ const isActive = (p) => p.is_enabled; // À adapter selon API
 }
 .input-group input {
   flex: 1;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  min-width: 200px;
 }
 
 .search-bar input {
-  width: 100%;
-  padding: 8px;
-  margin-bottom: 15px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  margin-bottom: 1.5rem;
 }
 
 .data-table {
   width: 100%;
   border-collapse: collapse;
-  border: 1px solid #eee;
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border-color);
 }
 .data-table th,
 .data-table td {
-  padding: 12px;
-  border-bottom: 1px solid #eee;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color);
   text-align: left;
   vertical-align: top;
 }
+.data-table th {
+  background: #f8f9fa;
+  font-weight: 600;
+  color: var(--secondary);
+}
 
 .project-name {
-  font-weight: bold;
-  color: #2c3e50;
+  font-weight: 600;
+  color: var(--secondary);
 }
 .project-desc {
   font-size: 0.9em;
-  color: #666;
+  color: var(--text-muted);
   margin-top: 4px;
 }
 
 .edit-mode {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 8px;
 }
 .edit-input {
-  padding: 6px;
   width: 100%;
-  box-sizing: border-box;
-  font-family: inherit;
 }
 
 .badge-active {
   background: #e8f5e9;
   color: #2e7d32;
-  padding: 4px 8px;
+  padding: 4px 10px;
   border-radius: 12px;
-  font-size: 0.8em;
+  font-size: 0.85em;
+  font-weight: 600;
 }
 .badge-inactive {
   background: #ffebee;
   color: #c62828;
-  padding: 4px 8px;
+  padding: 4px 10px;
   border-radius: 12px;
-  font-size: 0.8em;
+  font-size: 0.85em;
+  font-weight: 600;
 }
 
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
 button {
-  cursor: pointer;
-  border: none;
+  width: 100%;
   padding: 6px 12px;
-  border-radius: 4px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
   font-size: 0.9em;
-  margin-bottom: 4px;
+  transition: background 0.2s;
 }
-.btn-primary {
-  background: #42b983;
-  color: white;
-}
-.btn-save {
-  background: #4caf50;
-  color: white;
-  width: 100%;
-}
-.btn-cancel {
-  background: #9e9e9e;
-  color: white;
-  width: 100%;
-}
-.btn-edit {
-  background: #2196f3;
-  color: white;
-  display: block;
-  width: 100%;
-}
-.btn-disable {
-  background: #ef5350;
-  color: white;
-  display: block;
-  width: 100%;
-}
-.btn-enable {
-  background: #66bb6a;
-  color: white;
-  display: block;
-  width: 100%;
-}
+.btn-primary { background: var(--primary); color: white; }
+.btn-primary:hover { background: var(--primary-hover); }
+.btn-save { background: #4caf50; color: white; }
+.btn-cancel { background: #9e9e9e; color: white; }
+.btn-edit { background: #2196f3; color: white; }
+.btn-disable { background: var(--danger); color: white; }
+.btn-enable { background: #66bb6a; color: white; }
 
 .row-disabled {
   opacity: 0.6;
-  background: #fdfdfd;
+  background: #fafafa;
 }
 
-/* Transitions pour l'apparition/disparition des lignes du tableau */
-.list-enter-active,
-.list-leave-active {
-  transition: all 0.35s ease;
+.data-table tbody tr {
+  transition: all 0.2s ease;
 }
-.list-enter-from {
-  opacity: 0;
-  transform: translateX(-16px);
-}
-.list-leave-to {
-  opacity: 0;
-  transform: translateX(16px);
-}
-.list-move {
-  transition: transform 0.35s ease;
+.data-table tbody tr:hover:not(.row-disabled) {
+  background: rgba(66, 185, 131, 0.05);
+  transform: translateX(2px);
 }
 </style>

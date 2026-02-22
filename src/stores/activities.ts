@@ -11,7 +11,6 @@ export const useActivitiesStore = defineStore("activities", {
     },
 
     async createActivity(name, color = "#000000") {
-      // On envoie une couleur par défaut car l'API peut l'exiger, mais on ne la demande plus à l'user
       const { data } = await this.$api.post("/api/activities", {
         name,
         color,

@@ -6,13 +6,11 @@ import { useTimeEntriesStore } from "@/stores/timeEntries";
 import { useGoalsStore } from "@/stores/goals";
 import { dateMixin } from "@/mixins/dateMixin";
 
-// Stores
 const projectsStore = useProjectsStore();
 const activitiesStore = useActivitiesStore();
 const timeStore = useTimeEntriesStore();
 const goalsStore = useGoalsStore();
 
-// Helpers date via mixin
 const {
   mixinGetTodayDate,
   mixinFormatTime,
@@ -21,19 +19,16 @@ const {
   mixinFormatDate,
 } = dateMixin.methods;
 
-// --- TIME TRACKER ---
 const selectedProject = ref("");
 const selectedActivity = ref("");
 const newProjectName = ref("");
 const newActivityName = ref("");
 const notes = ref("");
 
-// --- FILTRES LISTE ---
 const filterProject = ref("");
 const filterActivity = ref("");
 const filterKeyword = ref("");
 
-// --- EDITION ENTRÉE ---
 const editingEntryId = ref(null);
 const editForm = ref({
   project_id: "",
@@ -43,7 +38,6 @@ const editForm = ref({
   comment: "",
 });
 
-// --- ENTRÉE MANUELLE ---
 const showManualForm = ref(false);
 const manualForm = ref({
   project_id: "",
@@ -53,7 +47,6 @@ const manualForm = ref({
   comment: "",
 });
 
-// --- OBJECTIFS ---
 const newGoalName = ref("");
 const newGoalContent = ref("");
 const searchQuery = ref("");
@@ -61,7 +54,6 @@ const showCompleted = ref(false);
 const editingGoalId = ref(null);
 const editGoalForm = ref({ name: "", content: "" });
 
-// --- CHARGEMENT ---
 onMounted(async () => {
   const today = mixinGetTodayDate();
   await Promise.all([
@@ -72,7 +64,6 @@ onMounted(async () => {
   ]);
 });
 
-// --- PROJETS ACTIFS (pour les selects) ---
 const activeProjects = computed(() =>
   projectsStore.projects.filter((p) => p.is_enabled),
 );
@@ -80,7 +71,6 @@ const activeActivities = computed(() =>
   activitiesStore.activities.filter((a) => a.is_enabled),
 );
 
-// --- NOM HELPERS ---
 const getActivityName = (entry) => {
   if (entry.activity?.name) return entry.activity.name;
   const found = activitiesStore.activities.find(
@@ -94,7 +84,6 @@ const getProjectName = (entry) => {
   return found ? found.name : "Projet inconnu";
 };
 
-// --- CRÉATION RAPIDE ---
 const quickCreateProject = async () => {
   if (newProjectName.value) {
     await projectsStore.createProject(newProjectName.value, "");
@@ -108,13 +97,11 @@ const quickCreateActivity = async () => {
   }
 };
 
-// --- TIMER ---
 const handleStart = async () => {
   await timeStore.startTimer(selectedProject.value, selectedActivity.value);
   selectedProject.value = "";
   selectedActivity.value = "";
   notes.value = "";
-  // Rafraîchir les objectifs du header via le store goals
   await goalsStore.fetchGoals(mixinGetTodayDate());
 };
 
@@ -122,7 +109,6 @@ const handleStop = async (id) => {
   await timeStore.stopTimer(id);
 };
 
-// --- LISTE FILTRÉE ---
 const filteredEntries = computed(() =>
   timeStore.entries.filter((e) => {
     if (filterProject.value && e.project_id !== filterProject.value)
@@ -140,17 +126,14 @@ const filteredEntries = computed(() =>
   }),
 );
 
-// Durée formattée d'une entrée
 const entryDuration = (entry) => {
   if (!entry.end) return "en cours";
   const ms = new Date(entry.end) - new Date(entry.start);
   return mixinFormatDurationH(ms);
 };
 
-// --- EDITION ENTRÉE ---
 const startEditEntry = (entry) => {
   editingEntryId.value = entry.id;
-  // Convertir en format datetime-local (YYYY-MM-DDTHH:MM)
   const toLocalInput = (dt) => {
     if (!dt) return "";
     const d = new Date(dt);
@@ -188,7 +171,6 @@ const deleteEntry = async (id) => {
   }
 };
 
-// --- ENTRÉE MANUELLE ---
 const submitManualEntry = async () => {
   if (
     !manualForm.value.project_id ||
@@ -215,7 +197,6 @@ const submitManualEntry = async () => {
   showManualForm.value = false;
 };
 
-// --- OBJECTIFS ---
 const filteredGoals = computed(() => {
   const goals = showCompleted.value
     ? goalsStore.getCompletedGoals
@@ -271,7 +252,6 @@ const cancelEditGoal = () => {
   <div class="home-container">
     <h1>Time Tracker</h1>
 
-    <!-- Activité en cours -->
     <transition name="fade">
       <div v-if="timeStore.runningEntry" class="active-entry-card">
         <div class="active-header">
@@ -309,7 +289,6 @@ const cancelEditGoal = () => {
       </div>
     </transition>
 
-    <!-- Démarrage d'une nouvelle activité -->
     <div v-if="!timeStore.runningEntry" class="tracker-card">
       <div v-if="activeProjects.length === 0" class="warning-box">
         <p>Vous n'avez aucun projet actif.</p>
@@ -352,7 +331,6 @@ const cancelEditGoal = () => {
       </div>
     </div>
 
-    <!-- Liste des activités du jour -->
     <div class="entries-section">
       <div class="section-header">
         <h2>Activités du jour</h2>
@@ -361,7 +339,6 @@ const cancelEditGoal = () => {
         </button>
       </div>
 
-      <!-- Formulaire entrée manuelle -->
       <transition name="slide-down">
         <div v-if="showManualForm" class="manual-form card">
           <h4>Nouvelle entrée passée</h4>
@@ -400,7 +377,6 @@ const cancelEditGoal = () => {
         </div>
       </transition>
 
-      <!-- Filtres -->
       <div class="filters">
         <select v-model="filterProject">
           <option value="">Tous les projets</option>
@@ -421,10 +397,8 @@ const cancelEditGoal = () => {
         <input v-model="filterKeyword" placeholder="Mots-clés..." />
       </div>
 
-      <!-- Liste avec transition -->
       <transition-group name="list" tag="ul" class="entries-list">
         <li v-for="entry in filteredEntries" :key="entry.id" class="entry-item">
-          <!-- Mode édition -->
           <div v-if="editingEntryId === entry.id" class="entry-edit-form">
             <div class="form-row">
               <select v-model="editForm.project_id">
@@ -471,7 +445,6 @@ const cancelEditGoal = () => {
             </div>
           </div>
 
-          <!-- Mode lecture -->
           <div v-else class="entry-row">
             <div class="entry-info">
               <strong>{{ getProjectName(entry) }}</strong>
@@ -489,13 +462,13 @@ const cancelEditGoal = () => {
             </div>
             <div class="entry-actions">
               <button class="btn-icon btn-edit" @click="startEditEntry(entry)">
-                ✏️
+                Modifier
               </button>
               <button
                 class="btn-icon btn-delete"
                 @click="deleteEntry(entry.id)"
               >
-                🗑️
+                Supprimer
               </button>
             </div>
           </div>
@@ -507,11 +480,9 @@ const cancelEditGoal = () => {
       </p>
     </div>
 
-    <!-- Section Objectifs journaliers -->
     <div class="goals-section">
       <h2>Objectifs journaliers</h2>
 
-      <!-- Formulaire d'ajout -->
       <div class="goal-form card">
         <h4>Nouvel objectif</h4>
         <input
@@ -533,7 +504,6 @@ const cancelEditGoal = () => {
         </button>
       </div>
 
-      <!-- Recherche et bascule -->
       <div class="goal-filters">
         <input
           v-model="searchQuery"
@@ -545,10 +515,8 @@ const cancelEditGoal = () => {
         </button>
       </div>
 
-      <!-- Liste des objectifs avec transition -->
       <transition-group name="list" tag="ul" class="goal-list">
         <li v-for="goal in filteredGoals" :key="goal.id" class="goal-item">
-          <!-- Mode édition objectif -->
           <div v-if="editingGoalId === goal.id" class="goal-edit-form">
             <input v-model="editGoalForm.name" class="goal-input" />
             <textarea
@@ -565,7 +533,6 @@ const cancelEditGoal = () => {
             </div>
           </div>
 
-          <!-- Mode lecture objectif -->
           <div v-else>
             <div class="goal-header">
               <strong :class="{ 'goal-done': goal.done }">{{
@@ -575,7 +542,6 @@ const cancelEditGoal = () => {
                 mixinFormatDate(goal.date || goal.created_at)
               }}</span>
             </div>
-            <!-- Directive v-markdown pour le rendu du contenu -->
             <div
               v-if="goal.content"
               class="goal-description"
@@ -587,16 +553,16 @@ const cancelEditGoal = () => {
                 @click="completeGoal(goal.id)"
                 class="btn-complete"
               >
-                ✓ Terminer
+                Terminer
               </button>
               <button v-else @click="undoneGoal(goal.id)" class="btn-undone">
-                ↩ Rouvrir
+                Rouvrir
               </button>
               <button class="btn-icon btn-edit" @click="startEditGoal(goal)">
-                ✏️
+                Modifier
               </button>
               <button class="btn-icon btn-delete" @click="deleteGoal(goal.id)">
-                🗑️
+                Supprimer
               </button>
             </div>
           </div>
@@ -619,13 +585,13 @@ const cancelEditGoal = () => {
   margin: 0 auto;
 }
 
-/* ---- ACTIVE CARD ---- */
 .active-entry-card {
   background: linear-gradient(135deg, #e8f5e9, #f1f8e9);
-  border: 1px solid #4caf50;
+  border: 1px solid var(--primary);
   padding: 20px;
-  border-radius: 10px;
+  border-radius: var(--radius);
   margin-bottom: 2rem;
+  box-shadow: var(--shadow);
 }
 .active-header {
   display: flex;
@@ -641,19 +607,12 @@ const cancelEditGoal = () => {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #4caf50;
+  background: var(--primary);
   animation: pulse-anim 1.5s ease-in-out infinite;
 }
 @keyframes pulse-anim {
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.4;
-    transform: scale(0.7);
-  }
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.7); }
 }
 .notes-block {
   margin: 12px 0;
@@ -677,7 +636,7 @@ const cancelEditGoal = () => {
   font-size: 0.9rem;
 }
 .stop-btn {
-  background: #f44336;
+  background: var(--danger);
   color: white;
   border: none;
   padding: 10px 24px;
@@ -687,10 +646,9 @@ const cancelEditGoal = () => {
   transition: background 0.2s;
 }
 .stop-btn:hover {
-  background: #d32f2f;
+  background: var(--danger-hover);
 }
 
-/* ---- TRACKER CARD ---- */
 .tracker-card {
   margin-bottom: 2rem;
 }
@@ -698,7 +656,7 @@ const cancelEditGoal = () => {
   background: #fff3cd;
   border: 1px solid #ffd54f;
   padding: 15px;
-  border-radius: 8px;
+  border-radius: var(--radius);
   margin-bottom: 1rem;
 }
 .quick-add {
@@ -715,29 +673,8 @@ const cancelEditGoal = () => {
 .controls select {
   flex: 1;
   min-width: 160px;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-}
-.start-btn {
-  background: #42b983;
-  color: white;
-  border: none;
-  padding: 10px 24px;
-  font-weight: bold;
-  cursor: pointer;
-  border-radius: 6px;
-  transition: background 0.2s;
-}
-.start-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-.start-btn:not(:disabled):hover {
-  background: #2e9e6e;
 }
 
-/* ---- ENTRIES SECTION ---- */
 .entries-section {
   margin-bottom: 3rem;
 }
@@ -757,9 +694,6 @@ const cancelEditGoal = () => {
 .filters input {
   flex: 1;
   min-width: 140px;
-  padding: 7px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
 }
 .entries-list {
   list-style: none;
@@ -767,11 +701,12 @@ const cancelEditGoal = () => {
   margin: 0;
 }
 .entry-item {
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
   margin-bottom: 8px;
   background: white;
   overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
 }
 .entry-row {
   display: flex;
@@ -790,12 +725,13 @@ const cancelEditGoal = () => {
 .activity-badge {
   background: #e3f2fd;
   color: #1565c0;
-  padding: 2px 8px;
+  padding: 4px 10px;
   border-radius: 12px;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
+  font-weight: 500;
 }
 .entry-comment {
-  color: #777;
+  color: var(--text-muted);
   font-size: 0.85rem;
   font-style: italic;
 }
@@ -804,55 +740,47 @@ const cancelEditGoal = () => {
   align-items: center;
   gap: 6px;
   font-size: 0.9rem;
-  color: #555;
+  color: var(--text-muted);
 }
 .tag-running {
-  color: #f44336;
+  color: var(--danger);
   font-weight: bold;
 }
 .duration-chip {
   background: #f5f5f5;
-  border: 1px solid #ddd;
-  padding: 2px 7px;
+  border: 1px solid var(--border-color);
+  padding: 2px 8px;
   border-radius: 10px;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
+  font-weight: 500;
 }
 .entry-actions {
   display: flex;
   gap: 4px;
 }
 .entry-edit-form {
-  padding: 12px;
+  padding: 16px;
   background: #fafafa;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 
-/* ---- MANUAL FORM ---- */
 .manual-form {
   margin-bottom: 1rem;
-  padding: 16px;
-  background: #f9f9f9;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
 }
 .manual-form h4 {
   margin: 0 0 12px;
 }
 
-/* ---- SHARED FORM ELEMENTS ---- */
 .form-row {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 .form-row select,
 .form-row input {
   flex: 1;
-  padding: 7px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
   min-width: 140px;
 }
 .form-row label {
@@ -863,26 +791,12 @@ const cancelEditGoal = () => {
   font-size: 0.85rem;
   min-width: 140px;
 }
-.full-input {
-  width: 100%;
-  padding: 7px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  box-sizing: border-box;
-}
 .edit-actions {
   display: flex;
   gap: 8px;
-}
-.card {
-  background: white;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 1rem;
+  margin-top: 8px;
 }
 
-/* ---- GOALS ---- */
 .goals-section {
   margin-top: 1rem;
 }
@@ -890,26 +804,14 @@ const cancelEditGoal = () => {
   margin-bottom: 1rem;
 }
 .goal-form h4 {
-  margin: 0 0 10px;
+  margin: 0 0 12px;
 }
 .goal-input {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  margin-bottom: 8px;
-  box-sizing: border-box;
+  margin-bottom: 12px;
 }
 .goal-textarea {
-  width: 100%;
   min-height: 80px;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  resize: vertical;
-  margin-bottom: 8px;
-  font-family: inherit;
-  box-sizing: border-box;
+  margin-bottom: 12px;
 }
 .goal-filters {
   display: flex;
@@ -918,177 +820,64 @@ const cancelEditGoal = () => {
 }
 .goal-search {
   flex: 1;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
 }
 .goal-list {
   list-style: none;
   padding: 0;
 }
 .goal-item {
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 14px;
-  margin-bottom: 8px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 10px;
   background: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
 }
 .goal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 .goal-date {
-  font-size: 0.8rem;
-  color: #999;
+  font-size: 0.85rem;
+  color: var(--text-muted);
 }
 .goal-done {
   text-decoration: line-through;
-  color: #aaa;
+  color: var(--text-muted);
 }
 .goal-description {
-  font-size: 0.9rem;
-  color: #555;
-  margin: 8px 0;
+  font-size: 0.95rem;
+  color: var(--text-main);
+  margin: 10px 0;
   line-height: 1.5;
 }
 .goal-item-actions {
   display: flex;
   gap: 8px;
-  margin-top: 8px;
+  margin-top: 12px;
   flex-wrap: wrap;
 }
 .goal-edit-form {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 
-/* ---- BUTTONS ---- */
-.btn-primary {
-  background: #42b983;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.btn-primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-.btn-secondary {
-  background: #eceff1;
-  color: #2c3e50;
-  border: 1px solid #ccc;
-  padding: 8px 14px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.btn-secondary:hover {
-  background: #dde;
-}
-.btn-save {
-  background: #4caf50;
-  color: white;
-  border: none;
-  padding: 6px 14px;
-  border-radius: 5px;
-  cursor: pointer;
-}
-.btn-cancel {
-  background: #9e9e9e;
-  color: white;
-  border: none;
-  padding: 6px 14px;
-  border-radius: 5px;
-  cursor: pointer;
-}
-.btn-complete {
-  background: #4caf50;
-  color: white;
-  border: none;
-  padding: 5px 12px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 0.85rem;
-}
-.btn-undone {
-  background: #78909c;
-  color: white;
-  border: none;
-  padding: 5px 12px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 0.85rem;
-}
-.btn-icon {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 1rem;
-  padding: 4px;
-  border-radius: 4px;
-  transition: background 0.15s;
-}
-.btn-icon:hover {
-  background: #f0f0f0;
-}
 .empty-msg {
   text-align: center;
-  color: #aaa;
+  color: var(--text-muted);
   padding: 20px;
 }
 
-/* ---- TRANSITIONS ---- */
-/* Apparition/disparition d'éléments individuels */
-.fade-enter-active,
-.fade-leave-active {
-  transition:
-    opacity 0.3s ease,
-    transform 0.3s ease;
+.entry-item,
+.goal-item {
+  transition: all 0.2s ease;
 }
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-  transform: translateY(-8px);
-}
-
-/* Formulaire qui glisse vers le bas */
-.slide-down-enter-active,
-.slide-down-leave-active {
-  transition: all 0.3s ease;
-  overflow: hidden;
-}
-.slide-down-enter-from,
-.slide-down-leave-to {
-  opacity: 0;
-  max-height: 0;
-  padding-top: 0;
-  padding-bottom: 0;
-}
-.slide-down-enter-to,
-.slide-down-leave-from {
-  max-height: 500px;
-}
-
-/* Animation de liste (ajout / suppression) */
-.list-enter-active,
-.list-leave-active {
-  transition: all 0.3s ease;
-}
-.list-enter-from {
-  opacity: 0;
-  transform: translateX(-20px);
-}
-.list-leave-to {
-  opacity: 0;
-  transform: translateX(20px);
-}
-.list-move {
-  transition: transform 0.3s ease;
+.entry-item:hover,
+.goal-item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
 }
 </style>

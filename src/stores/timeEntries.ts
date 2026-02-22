@@ -7,12 +7,10 @@ export const useTimeEntriesStore = defineStore("timeEntries", {
   }),
 
   getters: {
-    // Entrée en cours (sans date de fin)
     runningEntry: (state) => state.entries.find((e) => e.end === null),
   },
 
   actions: {
-    // Charger les entrées avec filtre optionnel from/to (YYYY-MM-DD)
     async fetchEntries(from: string | null = null, to: string | null = null) {
       this.loading = true;
       try {
@@ -21,9 +19,6 @@ export const useTimeEntriesStore = defineStore("timeEntries", {
         if (to) params.to = to;
 
         const { data } = await this.$api.get("/api/time-entries", { params });
-
-        // Si une entrée tourne en mémoire et n'est pas dans le retour API,
-        // on la réinjecte pour ne pas perdre son affichage.
         const currentRunning = this.runningEntry;
         this.entries = data;
 
@@ -39,8 +34,6 @@ export const useTimeEntriesStore = defineStore("timeEntries", {
         this.loading = false;
       }
     },
-
-    // Démarrer un timer
     async startTimer(projectId: string, activityId: string) {
       const { data } = await this.$api.post("/api/time-entries", {
         project_id: projectId,
@@ -48,8 +41,6 @@ export const useTimeEntriesStore = defineStore("timeEntries", {
       });
       this.entries.unshift(data);
     },
-
-    // Stopper le timer d'une entrée
     async stopTimer(entryId: string) {
       const { data } = await this.$api.patch(
         `/api/time-entries/${entryId}/stop`,
@@ -59,14 +50,10 @@ export const useTimeEntriesStore = defineStore("timeEntries", {
         this.entries[index] = data;
       }
     },
-
-    // Supprimer une entrée
     async deleteEntry(entryId: string) {
       await this.$api.delete(`/api/time-entries/${entryId}`);
       this.entries = this.entries.filter((e) => e.id !== entryId);
     },
-
-    // Modifier une entrée existante
     async updateEntry(entry: {
       id: string;
       project_id: string;
@@ -87,8 +74,6 @@ export const useTimeEntriesStore = defineStore("timeEntries", {
         this.entries[index] = data;
       }
     },
-
-    // Créer une entrée manuelle (start ET end obligatoires)
     async createManualEntry(
       projectId: string,
       activityId: string,

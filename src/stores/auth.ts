@@ -30,11 +30,7 @@ export const useAuthStore = defineStore("auth", {
     },
     async updateProfile(updatedData) {
       try {
-        // Appel PUT sur /api/profile
         const { data } = await this.$api.put("/api/profile", updatedData);
-
-        // On met à jour l'utilisateur dans le store pour que
-        // le changement soit visible partout (Header, etc.)
         this.user = data;
         return { success: true };
       } catch (error) {

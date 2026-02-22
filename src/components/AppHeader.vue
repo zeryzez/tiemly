@@ -17,8 +17,6 @@ const router = useRouter();
 
 const now = ref(Date.now());
 let timer = null;
-
-// Helpers date via mixin (utilisés directement comme fonctions)
 const { mixinGetTodayDate, mixinToLocalDateKey, mixinFormatDurationHMS } =
   dateMixin.methods;
 
@@ -67,8 +65,6 @@ const totalWorkedTodayMs = computed(() => {
     return sum + Math.max(0, end - start);
   }, 0);
 });
-
-// Dénominateur : dailyGoal (préférence utilisateur) si défini, sinon total API
 const goalsTarget = computed(() =>
   goalsStore.dailyGoal > 0
     ? goalsStore.dailyGoal
@@ -162,22 +158,26 @@ onBeforeUnmount(() => {
   grid-template-columns: auto 1fr 260px auto;
   gap: 16px;
   align-items: center;
-  padding: 1rem;
-  background: #2c3e50;
+  padding: 1rem 2rem;
+  background: var(--secondary);
   color: white;
   position: sticky;
   top: 0;
   z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 .nav-links a {
-  color: #aaa;
+  color: rgba(255,255,255,0.7);
   text-decoration: none;
-  margin-right: 15px;
-  font-weight: bold;
+  margin-right: 20px;
+  font-weight: 600;
   transition: color 0.2s;
 }
+.nav-links a:hover {
+  color: white;
+}
 .nav-links a.router-link-active {
-  color: #42b983;
+  color: var(--primary);
 }
 .status-block {
   display: flex;
@@ -188,90 +188,86 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 6px;
-  padding: 6px 10px;
+  padding: 6px 12px;
 }
 .running-card.muted {
-  opacity: 0.8;
+  opacity: 0.6;
+  background: transparent;
+  border-color: transparent;
 }
-/* Indicateur visuel animé pour signifier une activité en cours */
+
 .pulse-dot {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: #42b983;
+  background: var(--primary);
   animation: pulse-anim 1.5s ease-in-out infinite;
   flex-shrink: 0;
 }
 @keyframes pulse-anim {
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.4;
-    transform: scale(0.7);
-  }
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.7); }
 }
 .duration-badge {
   background: rgba(66, 185, 131, 0.2);
-  border: 1px solid #42b983;
+  border: 1px solid var(--primary);
   padding: 2px 8px;
   border-radius: 12px;
   font-family: monospace;
   font-size: 0.9rem;
-  color: #42b983;
+  color: var(--primary);
 }
 .stop-btn {
   margin-left: auto;
-  background: #f44336;
+  background: var(--danger);
   border: none;
   color: white;
-  padding: 4px 10px;
+  padding: 4px 12px;
   border-radius: 4px;
   cursor: pointer;
+  font-weight: 600;
   transition: background 0.2s;
 }
 .stop-btn:hover {
-  background: #d32f2f;
+  background: var(--danger-hover);
 }
 .hours-line {
   font-size: 0.9rem;
+  color: rgba(255,255,255,0.9);
 }
 .goals-display {
   display: flex;
   flex-direction: column;
   width: 100%;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
 }
 .progress-bar {
   height: 6px;
-  background: #555;
+  background: rgba(255,255,255,0.2);
   border-radius: 3px;
-  margin-top: 4px;
+  margin-top: 6px;
   overflow: hidden;
 }
 .progress-fill {
   height: 100%;
-  background: #42b983;
+  background: var(--primary);
   transition: width 0.5s ease;
 }
 .logout-btn {
-  background: none;
-  border: 1px solid #aaa;
-  color: #aaa;
-  padding: 5px 10px;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.5);
+  color: white;
+  padding: 6px 12px;
   cursor: pointer;
-  border-radius: 4px;
-  transition:
-    color 0.2s,
-    border-color 0.2s;
+  border-radius: 6px;
+  font-weight: 600;
+  transition: all 0.2s;
 }
 .logout-btn:hover {
-  color: white;
+  background: rgba(255,255,255,0.1);
   border-color: white;
 }
 </style>

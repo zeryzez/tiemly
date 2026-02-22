@@ -1,10 +1,8 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 
-// 1. Import des vues
 import HomeView from "../views/HomeView.vue";
 import LoginView from "../views/LoginView.vue";
-// Nouveaux imports pour les paramètres
 import SettingsView from "../views/SettingsView.vue";
 import ProfileSettings from "../views/settings/ProfileSettings.vue";
 import ProjectsSettings from "../views/settings/ProjectsSettings.vue";
@@ -31,16 +29,15 @@ const router = createRouter({
       component: StatsView,
       meta: { requiresAuth: true },
     },
-    // 2. Ajout de la route Paramètres avec ses enfants
     {
       path: "/settings",
       name: "settings",
       component: SettingsView,
       meta: { requiresAuth: true },
-      redirect: { name: "settings-profile" }, // Redirection automatique vers le profil
+      redirect: { name: "settings-profile" },
       children: [
         {
-          path: "profile", // Notez: pas de '/' au début pour les enfants
+          path: "profile",
           name: "settings-profile",
           component: ProfileSettings,
         },

@@ -1,4 +1,3 @@
-// src/stores/stats.js
 import { defineStore } from "pinia";
 
 export const useStatsStore = defineStore("stats", {
@@ -7,18 +6,14 @@ export const useStatsStore = defineStore("stats", {
     loading: false,
   }),
   getters: {
-    // Calcul du temps total sur la sélection
     totalDurationMs: (state) => {
       return state.filteredEntries.reduce(
         (acc, e) => (e.end ? acc + (new Date(e.end) - new Date(e.start)) : acc),
         0,
       );
     },
-    // Nombre de projets (utile pour le KPI)
     projectCount: (state) =>
       new Set(state.filteredEntries.map((e) => e.project_id)).size,
-
-    // Données pour le graphe Projet — keyed by project_id
     statsByProject: (state) => {
       const map = {};
       state.filteredEntries.forEach((e) => {
@@ -28,7 +23,6 @@ export const useStatsStore = defineStore("stats", {
       });
       return map;
     },
-    // Données pour le graphe Activité — keyed by activity_id
     statsByActivity: (state) => {
       const map = {};
       state.filteredEntries.forEach((e) => {
@@ -46,12 +40,10 @@ export const useStatsStore = defineStore("stats", {
       this.loading = true;
       try {
         const params = { from: fromDate, to: toDate };
-        if (projectId) params.project_id = projectId; // On ajoute le filtre si présent
+        if (projectId) params.project_id = projectId;
 
         const { data } = await this.$api.get("/api/time-entries", { params });
         console.log("Stats API response", data);
-
-        // Tri chronologique (du plus ancien au plus récent pour le rapport)
         this.filteredEntries = data.sort(
           (a, b) => new Date(a.start) - new Date(b.start),
         );
